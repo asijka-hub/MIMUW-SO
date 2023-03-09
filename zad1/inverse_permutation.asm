@@ -17,16 +17,16 @@ inverse_permutation:
 
 ; od tego momentu wiemy ze n jest poprawne
 
-        mov     rcx, rdi    ; w rcx trzymamy licznik petli
+        mov     rcx, rdi                        ; w rcx trzymamy licznik petli
 .check_number_correctness:
-                            ; w rdi mamy n
-                            ; w rsi mamy pointer na array
-        cmp     dword [rsi], edi
-        ja      .wrong
+                                                ; w rdi mamy n
+                                                ; w rsi mamy pointer na array
+        cmp     edi, dword [rsi]
+        jg      .wrong
         add     rsi,    4
         loop    .check_number_correctness
 
-
+; od tego momentu wiemy ze wszystkie liczby w tablicy sa w dabrym zakresie tzn 0 .. n - 1
 .okay:
         xor     rax, rax
         mov     rax, 1
