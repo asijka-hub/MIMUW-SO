@@ -27,14 +27,76 @@ inverse_permutation:
 
 ; od tego momentu wiemy ze n jest poprawne
 
-;        mov     rcx, rdi                        ; w rcx trzymamy licznik petli
-;.check_number_correctness:
-;        cmp     edi, dword [rbx]
-;        jg      .wrong
-;        add     rsi,    4
-;        loop    .check_number_correctness
+        mov     rcx, rdi                        ; w rcx trzymamy licznik petli
+.check_number_correctness:
+        cmp     dword [rbx], 0
+        jge     .array_element_bigger_than_zero
+        jmp     .wrong
+.array_element_bigger_than_zero:
+        cmp     edi, dword [rbx]
+        jg      .array_element_okay
+        jmp     .wrong
+.array_element_okay:
+        add     rbx,    4
+        loop    .check_number_correctness
 
 ; od tego momentu wiemy ze wszystkie liczby w tablicy sa w dabrym zakresie tzn 0 .. n - 1
+
+        mov     rcx, rdi
+        mov     rbx, rsi
+
+;   w r8 bedziemy trzymac abs(a[i])
+
+.check_duplicates:
+        mov     r8d, dword [rbx]
+        and     r8d, 2147483647                  ; 2^31 - 1 -> 01111111 zerujemy najstarszy bit czyli bierzemy abs
+                                                 ; teraz musimy znalesc a[abs(a[i])]
+        mov     r9d, dword [rsi + 4 * r8]        ; w r9 jest a[abs(a[i])]
+        cmp     r9d, 0
+        jl     .duplicate_found
+        or      dword [rsi + 4 * r8], -2147483648        ; -2^31 ustawiamy najstarzy bit na 1
+        add     rbx, 4
+        loop    .check_duplicates
+
+        jmp     .numbers_are_permutation
+
+
+.duplicate_found:
+;       w czesci liczb flagi ktorych uzywamy czyli najstarsze bity sa ustawione
+;       musimy je wylaczac
+        mov     rcx, rdi
+        mov     rbx, rsi
+.fix_flags:
+        and     dword [rbx], 2147483647
+        add     rbx, 4
+        loop    .fix_flags
+
+        jmp     .wrong
+
+.numbers_are_permutation:
+
+        mov     rcx, rdi
+        mov     rbx, rsi
+.fix_flags_2:
+        and     dword [rbx], 2147483647
+        add     rbx, 4
+        loop    .fix_flags_2
+
+        mov     r8, rdi                          ; w r8 bedziemy trzymac n/2 zaoklaglone w dol
+        shr     r8, 2
+        mov     rcx, r8
+
+.loop_swap:
+        mov     r8, rdi                          ; w r8 mamy indels elementu z prawej ktory bedziemy zamieniac
+        sub     r8, rcx
+        mov     r9, rcx
+        dec     r9                               ; w r9 mamy indeks elementu z lewej ktory bedziemy zamieniac
+        ;mov     r10d, dword [rsi + 4 * r9]       ; w r10 mamy stara wartosc z lewej
+
+
+        loop    .loop_swap
+
+
 .okay:
         pop     rbx
         xor     rax, rax
