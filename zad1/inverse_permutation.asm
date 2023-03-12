@@ -83,19 +83,25 @@ inverse_permutation:
         loop    .fix_flags_2
 
         mov     r8, rdi                          ; w r8 bedziemy trzymac n/2 zaoklaglone w dol
-        shr     r8, 2
+        shr     r8, 1
         mov     rcx, r8
 
+        cmp     rcx, 0
+        jne     .loop_swap
+        jmp     .okay
+
 .loop_swap:
-        mov     r8, rdi                          ; w r8 mamy indels elementu z prawej ktory bedziemy zamieniac
-        sub     r8, rcx
         mov     r9, rcx
         dec     r9                               ; w r9 mamy indeks elementu z lewej ktory bedziemy zamieniac
-        ;mov     r10d, dword [rsi + 4 * r9]       ; w r10 mamy stara wartosc z lewej
-
+        mov     r8, rdi                          ; w r8 mamy indels elementu z prawej ktory bedziemy zamieniac
+        sub     r8, r9
+        dec     r8
+        mov     r10d, dword [rsi + 4 * r9]       ; w r10 mamy stara wartosc z lewej
+        mov     r11d, dword [rsi + 4 * r8]       ; w r11 mamy element z prawej
+        mov     dword [rsi + 4 * r9], r11d       ; w miejsce elementu z lewej zapisujemy element z prawej
+        mov     dword [rsi + 4 * r8], r10d
 
         loop    .loop_swap
-
 
 .okay:
         pop     rbx
