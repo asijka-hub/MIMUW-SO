@@ -6,6 +6,13 @@ section .data
 
 section .text
 
+
+; first argumet n, index of element where we start to look for inverse
+; seconf argument pointer to array
+find_inverse:
+    
+    ret
+
 ; first argumet in rdi
 ; second argument in rsi
 ; array pointer used to referencing array in rbx
@@ -82,26 +89,21 @@ inverse_permutation:
         add     rbx, 4
         loop    .fix_flags_2
 
-        mov     r8, rdi                          ; w r8 bedziemy trzymac n/2 zaoklaglone w dol
-        shr     r8, 1
-        mov     rcx, r8
+        mov     rcx, rdi
+        push    rdi
 
-        cmp     rcx, 0
-        jne     .loop_swap
-        jmp     .okay
-
-.loop_swap:
-        mov     r9, rcx
-        dec     r9                               ; w r9 mamy indeks elementu z lewej ktory bedziemy zamieniac
-        mov     r8, rdi                          ; w r8 mamy indels elementu z prawej ktory bedziemy zamieniac
-        sub     r8, r9
+.loop_inverse:
+        mov     r8, rcx
         dec     r8
-        mov     r10d, dword [rsi + 4 * r9]       ; w r10 mamy stara wartosc z lewej
-        mov     r11d, dword [rsi + 4 * r8]       ; w r11 mamy element z prawej
-        mov     dword [rsi + 4 * r9], r11d       ; w miejsce elementu z lewej zapisujemy element z prawej
-        mov     dword [rsi + 4 * r8], r10d
+        cmp     dword [rsi + 4 * r8], 0            ; rcx iterowane od n, my liczymy -1
+        jge     .skip
+        mov     rdi, r8
+        call    find_inverse
+.skip:
+        loop    .loop_inverse
 
-        loop    .loop_swap
+        pop     rdi
+
 
 .okay:
         pop     rbx
