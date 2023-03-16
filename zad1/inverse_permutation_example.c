@@ -20,6 +20,14 @@ static bool compare_permutations(size_t n, int const *p1, int const *p2) {
 
 // Sprawdza, czy permutacja p2 jest permutacją odwrotną do permutacji p1 o długości n.
 static bool check_inverse_permutation(size_t n, int const *p1, int const *p2) {
+  printf("workspace: \n");
+
+  for (int i = 0; i < n; ++i) {
+      printf("%d ", p2[i]);
+  }
+
+  printf("\n");
+
   for (size_t i = 0; i < n; ++i)
     if ((size_t)p2[p1[i]] != i)
       return false;
@@ -38,6 +46,8 @@ static int seq_h[] = {1, 2, 3, 4, 5, 6, 7, 0};
 
 static int seq_false_1[] = {0, 5, 4, 5, 6, 3, 2, 1};
 static int seq_false_2[] = {1, 1, 1, 1};
+
+
 
 // Tablica, w której umieszczamy testowany ciąg liczb i której adres dostaje
 // funkcja inverse_permutation. Możemy chcieć odwracać długie permutacje.
@@ -65,7 +75,7 @@ int main() {
   CHECK_SIZE((size_t)INT_MAX + 2, seq_a);
   CHECK_SIZE((size_t)-1, seq_a);
 
-  //CHECK_TRUE(seq_a);
+  CHECK_TRUE(seq_a);
   CHECK_FALSE(seq_b);
   CHECK_FALSE(seq_c);
   CHECK_FALSE(seq_d);
@@ -78,6 +88,7 @@ int main() {
   CHECK_TRUE(seq_f);
   CHECK_TRUE(seq_g);
   CHECK_TRUE(seq_h);
+    printf("TEST OK!\n");
 }
 
 

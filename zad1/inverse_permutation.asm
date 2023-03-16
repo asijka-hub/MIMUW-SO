@@ -8,10 +8,31 @@ section .text
 
 
 ; first argumet n, index of element where we start to look for inverse
-; seconf argument pointer to array
+; second argument pointer to array
+; w r8 trzymamy indeks
+; w r9 nastepny indeks/aktualna wartosc
+; w r10 savujemy wartosc ktora aktualnie zmienilismy
+
 find_inverse:
-    
-    ret
+        push    r8
+        mov     r8, rdi
+        mov     r9d, dword [rsi + 4 * r8]
+
+        ;  pierwszy zawsze jest okej
+
+.while_loop:
+        mov     r10d, dword [rsi + 4 * r9]
+        mov     dword [rsi + 4 * r9], r8d
+        or      dword [rsi + 4 * r9], -2147483648
+        mov     r8d, r9d
+        mov     r9d, r10d
+
+        cmp     dword [rsi + 4 * r9], 0
+        jg      .while_loop
+
+
+        pop    r8
+        ret
 
 ; first argumet in rdi
 ; second argument in rsi
@@ -96,13 +117,22 @@ inverse_permutation:
         mov     r8, rcx
         dec     r8
         cmp     dword [rsi + 4 * r8], 0            ; rcx iterowane od n, my liczymy -1
-        jge     .skip
+        jle     .skip
         mov     rdi, r8
         call    find_inverse
 .skip:
         loop    .loop_inverse
 
         pop     rdi
+
+        mov     rcx, rdi
+        mov     rbx, rsi
+.fix_flags_3:
+        and     dword [rbx], 2147483647
+        add     rbx, 4
+        loop    .fix_flags_3
+
+        mov     rcx, rdi
 
 
 .okay:
