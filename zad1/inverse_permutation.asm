@@ -28,7 +28,7 @@ find_inverse:
         mov     r9d, r10d
 
         cmp     dword [rsi + 4 * r9], 0
-        jg      .while_loop
+        jge      .while_loop
 
 
         pop    r8
@@ -117,7 +117,7 @@ inverse_permutation:
         mov     r8, rcx
         dec     r8
         cmp     dword [rsi + 4 * r8], 0            ; rcx iterowane od n, my liczymy -1
-        jle     .skip
+        jl     .skip
         mov     rdi, r8
         call    find_inverse
 .skip:

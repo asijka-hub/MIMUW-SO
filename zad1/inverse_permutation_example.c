@@ -47,7 +47,7 @@ static int seq_h[] = {1, 2, 3, 4, 5, 6, 7, 0};
 static int seq_false_1[] = {0, 5, 4, 5, 6, 3, 2, 1};
 static int seq_false_2[] = {1, 1, 1, 1};
 
-
+static int cycle_a[] = {0, 2, 1};
 
 // Tablica, w której umieszczamy testowany ciąg liczb i której adres dostaje
 // funkcja inverse_permutation. Możemy chcieć odwracać długie permutacje.
@@ -88,7 +88,12 @@ int main() {
   CHECK_TRUE(seq_f);
   CHECK_TRUE(seq_g);
   CHECK_TRUE(seq_h);
-    printf("TEST OK!\n");
+
+  printf("BASIC TEST OK!\n");
+
+  CHECK_TRUE(cycle_a);
+
+  printf("ALL TESTS OK!\n");
 }
 
 
