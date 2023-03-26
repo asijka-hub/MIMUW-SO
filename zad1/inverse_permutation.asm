@@ -1,11 +1,6 @@
 global inverse_permutation
 
-section .data
-
-    INT_MAX     equ 2147483647
-
 section .text
-
 
 ; first argumet n, index of element where we start to look for inverse
 ; second argument pointer to array
@@ -32,6 +27,15 @@ find_inverse:
 
 
         pop    r8
+        ret
+
+disable_flags:
+        mov     rcx, rdi
+        mov     rbx, rsi
+.fix_flags:
+        and     dword [rbx], 2147483647
+        add     rbx, 4
+        loop    .fix_flags
         ret
 
 ; first argumet in rdi
@@ -92,23 +96,12 @@ inverse_permutation:
 .duplicate_found:
 ;       w czesci liczb flagi ktorych uzywamy czyli najstarsze bity sa ustawione
 ;       musimy je wylaczac
-        mov     rcx, rdi
-        mov     rbx, rsi
-.fix_flags:
-        and     dword [rbx], 2147483647
-        add     rbx, 4
-        loop    .fix_flags
-
+        call    disable_flags
         jmp     .wrong
 
 .numbers_are_permutation:
+        call    disable_flags
 
-        mov     rcx, rdi
-        mov     rbx, rsi
-.fix_flags_2:
-        and     dword [rbx], 2147483647
-        add     rbx, 4
-        loop    .fix_flags_2
 
         mov     rcx, rdi
         push    rdi
@@ -125,23 +118,14 @@ inverse_permutation:
 
         pop     rdi
 
-        mov     rcx, rdi
-        mov     rbx, rsi
-.fix_flags_3:
-        and     dword [rbx], 2147483647
-        add     rbx, 4
-        loop    .fix_flags_3
-
-        mov     rcx, rdi
+        call    disable_flags
 
 
 .okay:
         pop     rbx
-        xor     rax, rax
-        mov     rax, 1
+        mov     eax, 1
         ret
 .wrong:
         pop     rbx
-        xor     rax, rax
-        mov     rax, 0
+        mov     eax, 0
         ret
