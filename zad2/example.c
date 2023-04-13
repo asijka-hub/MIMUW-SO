@@ -47,32 +47,29 @@ static void * core_thread(void *params) {
 }
 
 int main() {
+    static pthread_t tid[N];
+    static core_call_t params[N];
+    static const char *computation[N] = {
+            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC",
+            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC"
+    };
+    static const uint64_t result[N] = {112, 56};
 
-        char array[] = {"01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC"};
-        core(0, array);
-//    static pthread_t tid[N];
-//    static core_call_t params[N];
-//    static const char *computation[N] = {
-//            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC",
-//            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC"
-//    };
-//    static const uint64_t result[N] = {112, 56};
-//
-//    for (size_t n = 0; n < N; ++n) {
-//        params[n].n = n;
-//        params[n].result = 0;
-//        params[n].p = computation[n];
-//    }
-//
-//    for (size_t n = 0; n < N; ++n)
-//        assert(0 == pthread_create(&tid[n], NULL, &core_thread, (void*)&params[n]));
-//
-//    wait = 1; // Wystartuj rdzenie.
-//
-//    for (size_t n = 0; n < N; ++n)
-//        assert(0 == pthread_join(tid[n], NULL));
-//
-//    for (size_t n = 0; n < N; ++n)
-//        assert(params[n].result == result[n]);
+    for (size_t n = 0; n < N; ++n) {
+        params[n].n = n;
+        params[n].result = 0;
+        params[n].p = computation[n];
+    }
+
+    for (size_t n = 0; n < N; ++n)
+        assert(0 == pthread_create(&tid[n], NULL, &core_thread, (void*)&params[n]));
+
+    wait = 1; // Wystartuj rdzenie.
+
+    for (size_t n = 0; n < N; ++n)
+        assert(0 == pthread_join(tid[n], NULL));
+
+    for (size_t n = 0; n < N; ++n)
+        assert(params[n].result == result[n]);
 }
 

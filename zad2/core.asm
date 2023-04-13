@@ -64,12 +64,17 @@ print_l:
         pop     rdi
         ret
 
+pop:
+
+
 ;   first argument n in rdi
 ;   second argument p pointer in rsi
 ;   rbx as stack pointer
+;   rdx we save were to move stack pointer after whole program
 core:
         push    rbx
         mov     rbx,    rsi
+        mov     rdx,    rsp
 
 .main_loop:
         mov     al,     byte [rbx]
@@ -102,40 +107,70 @@ core:
 
         jmp     .switch_end
 .J_PLUS:
-        mov     r10,    mplus
-        call    print_l
+        ;mov     r10,    mplus
+        pop     r8
+        pop     r9
+        add     r8,     r9
+        push    r8
+        ;call    print_l
         jmp     .switch_end
 .J_ASTERISK:
-        mov     r10,    masterisk
-        call    print_l
+        ;mov     r10,    masterisk
+        pop     rax
+        pop     r8
+        push    rdx
+        imul    r8
+        pop     rdx
+        push    rax
+        ;call    print_l
         jmp     .switch_end
 .J_MINUS:
-        mov     r10,    mminus
-        call    print_l
+;       mozemy zrobic tu rozkaz neg
+        ;mov     r10,    mminus
+        pop     rax
+        mov     r8, -1
+        push    rdx
+        imul    r8
+        pop     rdx
+        push    rax
+        ;call    print_l
         jmp     .switch_end
 .J_NUMBER:
-        mov     r10,    mnumber
-        call    print_l
+        ;mov     r10,    mnumber
+        ;call    print_l
+        sub     al,     48
+        movzx   rax,    al
+        push    rax
         jmp     .switch_end
 .J_n:
-        mov     r10,    mn
-        call    print_l
+        ;mov     r10,    mn
+        push    rdi
+        ;call    print_l
         jmp     .switch_end
 .J_B:
         mov     r10,    mB
+
         call    print_l
         jmp     .switch_end
 .J_C:
-        mov     r10,    mC
-        call    print_l
+        ;mov     r10,    mC
+        pop     rax
+        ;call    print_l
         jmp     .switch_end
 .J_D:
-        mov     r10,    mD
-        call    print_l
+        ;mov     r10,    mD
+        ;call    print_l
+        pop     rax
+        push    rax
+        push    rax
         jmp     .switch_end
 .J_E:
-        mov     r10,    mE
-        call    print_l
+        ;mov     r10,    mE
+        ;call    print_l
+        pop     r8
+        pop     r9
+        push    r8
+        push    r9
         jmp     .switch_end
 .J_G:
         mov     r10,    mG
@@ -161,5 +196,7 @@ core:
 
 
 .program_end:
+        mov     rax,    [rsp]
+        mov     rsp,    rdx
         pop     rbx
         ret
