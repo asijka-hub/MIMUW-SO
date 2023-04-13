@@ -148,10 +148,12 @@ core:
         ;call    print_l
         jmp     .switch_end
 .J_B:
-        mov     r10,    mB
+        ;mov     r10,    mB
+        ;call    print_l
+        pop     rax
+        add     rbx,    rax
 
-        call    print_l
-        jmp     .switch_end
+        jmp     .main_loop      ; wazne skaczemy na poczatek petli
 .J_C:
         ;mov     r10,    mC
         pop     rax
