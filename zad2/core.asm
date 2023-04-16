@@ -1,5 +1,7 @@
 extern putchar
 extern printf
+extern put_value
+extern get_value
 global core
 
 PLUS        equ     43
@@ -77,30 +79,30 @@ core:
         mov     rdx,    rsp
 
 .main_loop:
-        mov     al,     byte [rbx]
+        mov     r10b,     byte [rbx]
 
 ;       skoki
-        jmp_op     al,  PLUS,  .J_PLUS
-        jmp_op     al,  ASTERISK,  .J_ASTERISK
-        jmp_op     al,  MINUS,  .J_MINUS
-        jmp_op     al,  OP_0,  .J_NUMBER
-        jmp_op     al,  OP_1,  .J_NUMBER
-        jmp_op     al,  OP_2,  .J_NUMBER
-        jmp_op     al,  OP_3,  .J_NUMBER
-        jmp_op     al,  OP_4,  .J_NUMBER
-        jmp_op     al,  OP_5,  .J_NUMBER
-        jmp_op     al,  OP_6,  .J_NUMBER
-        jmp_op     al,  OP_7,  .J_NUMBER
-        jmp_op     al,  OP_8,  .J_NUMBER
-        jmp_op     al,  OP_9,  .J_NUMBER
-        jmp_op     al,  OP_n,  .J_n
-        jmp_op     al,  OP_B,  .J_B
-        jmp_op     al,  OP_C,  .J_C
-        jmp_op     al,  OP_D,  .J_D
-        jmp_op     al,  OP_E,  .J_E
-        jmp_op     al,  OP_G,  .J_G
-        jmp_op     al,  OP_P,  .J_P
-        jmp_op     al,  OP_S,  .J_S
+        jmp_op     r10b,  PLUS,  .J_PLUS
+        jmp_op     r10b,  ASTERISK,  .J_ASTERISK
+        jmp_op     r10b,  MINUS,  .J_MINUS
+        jmp_op     r10b,  OP_0,  .J_NUMBER
+        jmp_op     r10b,  OP_1,  .J_NUMBER
+        jmp_op     r10b,  OP_2,  .J_NUMBER
+        jmp_op     r10b,  OP_3,  .J_NUMBER
+        jmp_op     r10b,  OP_4,  .J_NUMBER
+        jmp_op     r10b,  OP_5,  .J_NUMBER
+        jmp_op     r10b,  OP_6,  .J_NUMBER
+        jmp_op     r10b,  OP_7,  .J_NUMBER
+        jmp_op     r10b,  OP_8,  .J_NUMBER
+        jmp_op     r10b,  OP_9,  .J_NUMBER
+        jmp_op     r10b,  OP_n,  .J_n
+        jmp_op     r10b,  OP_B,  .J_B
+        jmp_op     r10b,  OP_C,  .J_C
+        jmp_op     r10b,  OP_D,  .J_D
+        jmp_op     r10b,  OP_E,  .J_E
+        jmp_op     r10b,  OP_G,  .J_G
+        jmp_op     r10b,  OP_P,  .J_P
+        jmp_op     r10b,  OP_S,  .J_S
 
 
 
@@ -138,9 +140,10 @@ core:
 .J_NUMBER:
         ;mov     r10,    mnumber
         ;call    print_l
-        sub     al,     48
-        movzx   rax,    al
-        push    rax
+        mov     r8b,    r10b      ; przenosimy do r8 zeby nie koncu nie popsuc warunku z al w switch_end
+        sub     r8b,     48
+        movzx   r8,    r8b
+        push    r8
         jmp     .switch_end
 .J_n:
         ;mov     r10,    mn
@@ -150,9 +153,17 @@ core:
 .J_B:
         ;mov     r10,    mB
         ;call    print_l
-        pop     rax
-        add     rbx,    rax
-
+        pop     r8
+        cmp     dword [rsp], 0
+        jne     .J_B_moving
+        jmp     .switch_end
+.J_B_moving:
+        cmp     r8,    0
+        jl      .J_B_less
+        add     rbx,    r8
+        jmp     .main_loop
+.J_B_less:
+        sub     rbx,    rax
         jmp     .main_loop      ; wazne skaczemy na poczatek petli
 .J_C:
         ;mov     r10,    mC
@@ -162,9 +173,9 @@ core:
 .J_D:
         ;mov     r10,    mD
         ;call    print_l
-        pop     rax
-        push    rax
-        push    rax
+        pop     r8
+        push    r8
+        push    r8
         jmp     .switch_end
 .J_E:
         ;mov     r10,    mE
@@ -175,20 +186,22 @@ core:
         push    r9
         jmp     .switch_end
 .J_G:
-        mov     r10,    mG
-        call    print_l
+        ;mov     r10,    mG
+        ;call    print_l
+        ;call    get_value
+        push    rax
         jmp     .switch_end
 .J_P:
-        mov     r10,    mP
-        call    print_l
+        ;mov     r10,    mP
+        ;call    print_l
         jmp     .switch_end
 .J_S:
-        mov     r10,    mS
-        call    print_l
+        ;mov     r10,    mS
+        ;call    print_l
         jmp     .switch_end
 
 .switch_end:
-        cmp     al,     0
+        cmp     r10b,     0
         jne     .loop_continue
         jmp     .program_end
 

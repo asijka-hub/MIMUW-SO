@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <pthread.h>
 #include <stddef.h>
+#include <stdio.h>
 
 // Ustalamy liczbę rdzeni.
 #define N 2
@@ -49,9 +50,13 @@ static void * core_thread(void *params) {
 int main() {
     static pthread_t tid[N];
     static core_call_t params[N];
-    static const char *computation[N] = {
-            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC",
-            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC"
+//    static const char *computation[N] = {
+//            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC",
+//            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC"
+//    };
+        static const char *computation[N] = {
+            "01234n+P56789E-+D+*G1n-+",
+            "01234n+P56789E-+D+*G1n-+"
     };
     static const uint64_t result[N] = {112, 56};
 
@@ -69,7 +74,13 @@ int main() {
     for (size_t n = 0; n < N; ++n)
         assert(0 == pthread_join(tid[n], NULL));
 
-    for (size_t n = 0; n < N; ++n)
+
+    for (size_t n = 0; n < N; ++n) {
+        printf("result %ld: %ld\n", n, params[n].result);
+    }
+
+    for (size_t n = 0; n < N; ++n) {
         assert(params[n].result == result[n]);
+    }
 }
 

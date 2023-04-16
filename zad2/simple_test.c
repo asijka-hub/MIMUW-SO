@@ -9,7 +9,7 @@
 uint64_t core(uint64_t n, char const *p);
 
 int main() {
-    char p[] = {"123459"};
+    char p[] = {"12"};
 
     int res = core(0, p);
 
@@ -52,6 +52,14 @@ int main() {
     int res6 = core(13, p6);
 
     printf("res6: %d\n", res6);
+
+    char p7[] = {"122+B1234+"};
+
+    int res7 = core(13, p7);
+
+    printf("res7: %d\n", res7);
+
+
 
     return 0;
 }
