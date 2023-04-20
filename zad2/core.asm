@@ -28,10 +28,16 @@ OP_S        equ     83
 NULL        equ     0
 
 section .bss
-    spin_lock_array   resb    N
+    spin_lock_array   resd    N
     sleeping_array    resb    N
     for_who_array     resq    N
     swap_array      resq    N
+
+section .data
+align           4
+    spin_lock:      dd 0
+
+
 
 ; jmp_op <reg8>, <imm8>, <label>
 %macro  jmp_op      3
@@ -213,72 +219,80 @@ core:
         pop     r9                      ; value to be swapped
 
         mov     eax,    1
-        lea     rdx,    [spin_lock_array + 1 * r8]   ; now we have m-th barrier
+        lea     r11,    [rel spin_lock_array]   ; now we have m-th barrier
+        lea     r11,    [r11 + 4 * r8]
 .busy_wait:
-        xchg    [rdx], eax                          ; Jeśli blokada otwarta, zamknij ją.
+        xchg    dword [r11], eax                          ; Jeśli blokada otwarta, zamknij ją.
         test    eax, eax                            ; Sprawdź, czy blokada była otwarta.
-        jnz     .busy_wait                          ; Skocz, gdy blokada była zamknięta.
+        ;jnz     .busy_wait                          ; Skocz, gdy blokada była zamknięta.
         ; now we are in critical section
         ; we must check if m was waiting for us
         ; if he was not than we should ourself go to sleep
-        ; and we will put our value to be swapped to swap array so when m wakes our up we will have already our value
+        ; and we will put our value to be swapped to swap array so when m wakes our up he will have already our value
 
-        cmp     rdi,    [for_who_array + 8 * r8]    ; we are checking if m process is waiting for n (us)
+        cmp     rdi,    [rel for_who_array + 8 * r8]    ; we are checking if m process is waiting for n (us)
+
         je      .we_wake_up
 .we_sleep:
-        ;   know we release lock on m-th array bcs we don't need it anymore
-        mov     [spin_lock_array + 1 * r8], eax
+        ;   now we release lock on m-th array bcs we don't need it anymore
+        ;mov     [spin_lock_array + 4 * r8], eax
 
         ;   before we go to sleep we must put our value to swap_array
         ;   we put it in n-th swap_array
         mov     eax,    1
-        lea     rdx,    [spin_lock_array + 8 * rdi]
+        ;lea     rdx,    [spin_lock_array + 4 * rdi]
 .busy_wait_2:
-        xchg    [rdx], eax                          ; Jeśli blokada otwarta, zamknij ją.
+        ;xchg    [rdx], eax                          ; Jeśli blokada otwarta, zamknij ją.
         test    eax, eax                            ; Sprawdź, czy blokada była otwarta.
-        jnz     .busy_wait_2
+        ;jnz     .busy_wait_2
         ; now we know it's safe to modify n-th array element
-        mov     [swap_array + 8 * rdi],     r9
+        ;mov     [swap_array + 8 * rdi],     r9
 
 
         ; know we must sleep
         ; so we should release n-th lock so someone can wake us up
 
-        mov     byte [sleeping_array + rdi],     1   ; we inform that we sleep
-        mov     [rdx], eax
+        ;mov     byte [sleeping_array + rdi],     1   ; we inform that we sleep
+        ;mov     [rdx], eax
 
+        mov     eax, 1
 .sleeping:
-        xchg    [rdx], eax
+        ;xchg    [rdx], eax
         test    eax, eax
-        jnz     .sleeping
+        ;jnz     .sleeping
         ;   we are in critical section
         ;   we are still sleeping!!!!!
-        cmp     byte [sleeping_array + rdi],     0
-        je      .waked_up
-        mov     [rdx],  eax
-        jmp     .sleeping
+        ;cmp     byte [sleeping_array + rdi],     0
+        ;je      .waked_up
+        ;mov     [rdx],  eax
+        ;jmp     .sleeping
 .waked_up:
         ;   know we have to take value from swap array, this value was put by process m
         ;   IMPORTANT
         ;   swap_array element that will be used is index of first process that goes to sleep
-        ;   so in this case is our index - n
+        ;   so in this case is our index -> n
 
-        mov     eax, 1
-.busy_wait_3:
-        xchg    [rdx], eax
-        jnz     .busy_wait_3
-        ; critical section
-        mov     rax,    [swap_array + 8 * rdi]
+        ;mov     rax,    [swap_array + 8 * rdi]
         push    rax         ; we have to stare value that process m gave us
-        mov     [rdx], eax
+        ;mov     [rdx], eax
+
+        jmp     .program_end
 
 .we_wake_up:
         ; when we are waking up that means few things
         ; first before we wake sleeping process we must put on our stack
         ; value that this process gave us
-        ; and than put to this swapping arrey our value
+        ; and than put to this swapping array our value
         ; important thing is index of swapping array and array that this process is sleeping
         ; is m second value as opposed to n-rdi first case
+
+        ;mov     rax,    [swap_array + 8 * r8]
+        push    rax
+
+        ;mov     [swap_array + 8 * r8], r9
+        ;mov     byte [sleeping_array + r8], 0 ; we wake process up
+
+        ;mov     [spin_lock_array + 4 * r8], eax ; realising lock
 
 
 

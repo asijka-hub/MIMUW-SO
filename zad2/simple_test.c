@@ -5,8 +5,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <assert.h>
+
+#define N 2
 
 uint64_t core(uint64_t n, char const *p);
+
+uint64_t get_value(uint64_t n) {
+//    assert(n < N);
+    return n + 1;
+}
+
+// Tę funkcję woła rdzeń.
+void put_value(uint64_t n, uint64_t v) {
+    assert(n + v == 12);
+ //   assert(v == n + 4);
+}
 
 int main() {
     char p[] = {"12"};
@@ -59,7 +73,11 @@ int main() {
 
     printf("res7: %d\n", res7);
 
+    char p8[] = {"6G"};
 
+    int res8 = core(7, p8);
+
+    printf("res8: %d\n", res8);
 
     return 0;
 }

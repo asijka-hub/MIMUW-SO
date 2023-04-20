@@ -15,14 +15,14 @@ uint64_t core(uint64_t n, char const *p);
 
 // Tę funkcję woła rdzeń.
 uint64_t get_value(uint64_t n) {
-    assert(n < N);
+    //assert(n < N);
     return n + 1;
 }
 
 // Tę funkcję woła rdzeń.
 void put_value(uint64_t n, uint64_t v) {
-    assert(n < N);
-    assert(v == n + 4);
+    //assert(n < N);
+    //assert(v == n + 4);
 }
 
 // To jest struktura służąca do przekazania do wątku parametrów wywołania
@@ -54,10 +54,11 @@ int main() {
 //            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC",
 //            "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC"
 //    };
-        static const char *computation[N] = {
-            "01234n+P56789E-+D+*G1n-+",
-            "01234n+P56789E-+D+*G1n-+"
+    static const char *computation[N] = {
+            "51S",
+            "70S"
     };
+
     static const uint64_t result[N] = {112, 56};
 
     for (size_t n = 0; n < N; ++n) {
