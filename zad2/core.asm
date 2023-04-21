@@ -28,7 +28,7 @@ OP_S        equ     83
 NULL        equ     0
 
 section .bss
-    spin_lock_array   resd    N
+;    spin_lock_array   resd    N
     sleeping_array    resb    N
     for_who_array     resq    N
     swap_array      resq    N
@@ -70,12 +70,10 @@ section .rodata
     mnumber         db  'num', 13, 10, 0
 section .text
 
-; argument in r10
+; argument in r15
 print_l:
-        push    rdi
-        mov     rdi, r10
+        mov     rdi, r15
         call    printf wrt ..plt
-        pop     rdi
         ret
 
 pop:
@@ -83,15 +81,26 @@ pop:
 
 ;   first argument n in rdi
 ;   second argument p pointer in rsi
-;   rbx as stack pointer
-;   rdx we save were to move stack pointer after whole program
+;   RBX we save were to move stack pointer after whole program
+;   we will store
+;   first argument in R12
+;   stack pointer in R13
+
+; ZMIANA RDX na RBX moze miec na cos wplyw
+
+; na ta chwile UZYWAMY NA STALE TYCH KTORE NIE SA CALL SAVED
+; RBX
+
 core:
+        push    r12
+        push    r13
         push    rbx
-        mov     rbx,    rsi
-        mov     rdx,    rsp
+        mov     rbx,    rsp
+        mov     r12,    rdi
+        mov     r13,    rsi
 
 .main_loop:
-        mov     r10b,     byte [rbx]
+        mov     r10b,     byte [r13]
 
 ;       skoki
         jmp_op     r10b,  PLUS,  .J_PLUS
@@ -119,7 +128,9 @@ core:
 
 
 
-        jmp     .switch_end
+        jmp     .program_end ; if all ifs failed that means that we reach end of instruction
+                             ; so we jump out of switch
+                             ; this is our deafault case
 .J_PLUS:
         ;mov     r10,    mplus
         pop     r8
@@ -127,68 +138,63 @@ core:
         add     r8,     r9
         push    r8
         ;call    print_l
-        jmp     .switch_end
+        jmp     .loop_continue
 .J_ASTERISK:
         ;mov     r10,    masterisk
         pop     rax
         pop     r8
-        push    rdx
         imul    r8
-        pop     rdx
         push    rax
         ;call    print_l
-        jmp     .switch_end
+        jmp     .loop_continue
 .J_MINUS:
 ;       mozemy zrobic tu rozkaz neg
         ;mov     r10,    mminus
         pop     rax
         mov     r8, -1
-        push    rdx
         imul    r8
-        pop     rdx
         push    rax
         ;call    print_l
-        jmp     .switch_end
+        jmp     .loop_continue
 .J_NUMBER:
-        ;mov     r10,    mnumber
+        ;mov     r15,    mnumber
         ;call    print_l
-        mov     r8b,    r10b      ; przenosimy do r8 zeby nie koncu nie popsuc warunku z al w switch_end
-        sub     r8b,     48
-        movzx   r8,    r8b
-        push    r8
-        jmp     .switch_end
+        sub     r10b,     48
+        movzx   r10,    r10b
+        push    r10
+        jmp     .loop_continue
 .J_n:
         ;mov     r10,    mn
-        push    rdi
+        push    r12
         ;call    print_l
-        jmp     .switch_end
+        jmp     .loop_continue
 .J_B:
         ;mov     r10,    mB
         ;call    print_l
         pop     r8
         cmp     dword [rsp], 0
         jne     .J_B_moving
-        jmp     .switch_end
+        jmp     .loop_continue
 .J_B_moving:
         cmp     r8,    0
         jl      .J_B_less
-        add     rbx,    r8
+        add     r13,    r8
         jmp     .main_loop
 .J_B_less:
-        sub     rbx,    rax
+        sub     r13,    rax
         jmp     .main_loop      ; wazne skaczemy na poczatek petli
 .J_C:
         ;mov     r10,    mC
         pop     rax
         ;call    print_l
-        jmp     .switch_end
+        jmp     .loop_continue
 .J_D:
         ;mov     r10,    mD
         ;call    print_l
         pop     r8
         push    r8
         push    r8
-        jmp     .switch_end
+        jmp     .loop_continue
 .J_E:
         ;mov     r10,    mE
         ;call    print_l
@@ -196,33 +202,41 @@ core:
         pop     r9
         push    r8
         push    r9
-        jmp     .switch_end
+        jmp     .loop_continue
 .J_G:
         ;mov     r10,    mG
         ;call    print_l
+        push    rbx
         call    get_value
+        pop     rbx
         push    rax
-        jmp     .switch_end
+        jmp     .loop_continue
 .J_P:
         ;mov     r10,    mP
         ;call    print_l
         pop     r8
-        push    rsi
+        push    rbx
         mov     rsi,    r8
         call    put_value
-        pop     rsi
-        jmp     .switch_end
+        pop     rbx
+        jmp     .loop_continue
 .J_S:
-        ;mov     r10,    mS
-        ;call    print_l
+        ;  w rdi trzymamy [rel spin_lock]
+        ;  w rsi trzymamy [rel sleeping_array]
+        ;  w rcx trzymamy [rel for_who_array]
+        ;  w rdx trzymamy [rel swap_array]
         pop     r8                      ; m value
         pop     r9                      ; value to be swapped
 
+        lea     rdi,    [rel spin_lock]
+        lea     rsi,    [rel sleeping_array]
+        lea     rcx,    [rel for_who_array]
+        lea     rdx,    [rel swap_array]
+
+
         mov     eax,    1
-        lea     r11,    [rel spin_lock_array]   ; now we have m-th barrier
-        lea     r11,    [r11 + 4 * r8]
 .busy_wait:
-        xchg    dword [r11], eax                          ; Jeśli blokada otwarta, zamknij ją.
+        xchg    dword [rdi], eax                          ; Jeśli blokada otwarta, zamknij ją.
         test    eax, eax                            ; Sprawdź, czy blokada była otwarta.
         ;jnz     .busy_wait                          ; Skocz, gdy blokada była zamknięta.
         ; now we are in critical section
@@ -230,7 +244,7 @@ core:
         ; if he was not than we should ourself go to sleep
         ; and we will put our value to be swapped to swap array so when m wakes our up he will have already our value
 
-        cmp     rdi,    [rel for_who_array + 8 * r8]    ; we are checking if m process is waiting for n (us)
+        cmp     r12,    [rel for_who_array + 8 * r8]    ; we are checking if m process is waiting for n (us)
 
         je      .we_wake_up
 .we_sleep:
@@ -240,19 +254,19 @@ core:
         ;   before we go to sleep we must put our value to swap_array
         ;   we put it in n-th swap_array
         mov     eax,    1
-        ;lea     rdx,    [spin_lock_array + 4 * rdi]
+        ;lea     rdx,    [spin_lock_array + 4 * r12]
 .busy_wait_2:
         ;xchg    [rdx], eax                          ; Jeśli blokada otwarta, zamknij ją.
         test    eax, eax                            ; Sprawdź, czy blokada była otwarta.
         ;jnz     .busy_wait_2
         ; now we know it's safe to modify n-th array element
-        ;mov     [swap_array + 8 * rdi],     r9
+        ;mov     [swap_array + 8 * r12],     r9
 
 
         ; know we must sleep
         ; so we should release n-th lock so someone can wake us up
 
-        ;mov     byte [sleeping_array + rdi],     1   ; we inform that we sleep
+        ;mov     byte [sleeping_array + r12],     1   ; we inform that we sleep
         ;mov     [rdx], eax
 
         mov     eax, 1
@@ -262,7 +276,7 @@ core:
         ;jnz     .sleeping
         ;   we are in critical section
         ;   we are still sleeping!!!!!
-        ;cmp     byte [sleeping_array + rdi],     0
+        ;cmp     byte [sleeping_array + r12],     0
         ;je      .waked_up
         ;mov     [rdx],  eax
         ;jmp     .sleeping
@@ -272,11 +286,11 @@ core:
         ;   swap_array element that will be used is index of first process that goes to sleep
         ;   so in this case is our index -> n
 
-        ;mov     rax,    [swap_array + 8 * rdi]
-        push    rax         ; we have to stare value that process m gave us
+        ;mov     rax,    [swap_array + 8 * r12]
+        ;push    rax         ; we have to stare value that process m gave us
         ;mov     [rdx], eax
 
-        jmp     .program_end
+        jmp     .loop_continue
 
 .we_wake_up:
         ; when we are waking up that means few things
@@ -284,10 +298,10 @@ core:
         ; value that this process gave us
         ; and than put to this swapping array our value
         ; important thing is index of swapping array and array that this process is sleeping
-        ; is m second value as opposed to n-rdi first case
+        ; is m second value as opposed to n-r12 first case
 
         ;mov     rax,    [swap_array + 8 * r8]
-        push    rax
+        ;push    rax
 
         ;mov     [swap_array + 8 * r8], r9
         ;mov     byte [sleeping_array + r8], 0 ; we wake process up
@@ -296,20 +310,17 @@ core:
 
 
 
-        jmp     .switch_end
-
-.switch_end:
-        cmp     r10b,     0
-        jne     .loop_continue
-        jmp     .program_end
+        jmp     .loop_continue
 
 .loop_continue:
-        inc     rbx
+        inc     r13
         jmp     .main_loop
 
 
 .program_end:
         mov     rax,    [rsp]
-        mov     rsp,    rdx
+        mov     rsp,    rbx
         pop     rbx
+        pop     r13
+        pop     r12
         ret
