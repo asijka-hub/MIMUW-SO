@@ -121,6 +121,31 @@ print_letter: ; first argument in rdi
     call   printf wrt ..plt
     ret
 
+align_call: ; rdi -> <func>  rsi -> <arg1>  rdx -> <arg2>
+    mov     r8,  rdx
+    mov     rax, rsp
+    mov     r9,  16
+    xor     rdx, rdx
+    div     r9
+    cmp     rdx,    0
+    je      .stack_align
+
+    push    r8
+    mov     rdx, r8
+    mov     rax, rdi
+    mov     rdi, rsi
+    mov     rsi, rdx
+    call    rax
+    pop     r8
+    ret
+
+.stack_align:
+    mov     rdx, r8
+    mov     rax, rdi
+    mov     rdi, rsi
+    mov     rsi, rdx
+    call    rax
+    ret
 
 ;   RBX we save were to move stack pointer after whole program
 ;   we will store
@@ -256,17 +281,26 @@ core:
 .J_G:
 ;        mov     rdi,    mG
 ;        call    print_letter
-        mov     rdi, r12
-        call    get_value
+       ; mov     rdi, r12
+        ;call    get_value
+        mov     rdi,    get_value
+        mov     rsi,    r12
+        call    align_call
         push    rax
         jmp     .loop_continue
 .J_P:
 ;        mov     rdi,    mP
 ;        call    print_letter
-        pop     rax
-        mov     rdi,    r12
-        mov     rsi,    rax
-        call    put_value
+
+        ;mov     rdi,    r12
+        ;pop     rsi
+        ;call    put_value
+
+        mov     rdi,    put_value
+        mov     rsi,    r12
+        pop     rdx
+        call    align_call
+
         jmp     .loop_continue
 .J_S:
         ;  w rdi trzymamy [rel spin_lock]
