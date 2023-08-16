@@ -23,7 +23,7 @@ clear:
 
     ret
 
-; clear last line of the screen
+; clear last line of the screen 
 clear_last_line:
     mov ah, 0x2 ; position cursor
     mov bh, 0
@@ -236,13 +236,12 @@ not_enter:
     jmp read_line
 
 is_enter:
+    cmp byte [bx], 10   ; check if lines end with new line character
+    jne read_line
+
     cmp ch, 6           ; we must check if it's potentialy last line or not
     jne normal_line
-
-last_line:
-    cmp byte [bx], 0    ; if it's last line, we check if last byte is 0, end of file
-    je last_step
-    jmp read_line
+    jmp last_step
 
 normal_line:
     cmp byte [bx], 10   ; if not last line, we check if we goot new line character
